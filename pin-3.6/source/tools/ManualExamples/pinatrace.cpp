@@ -38,12 +38,12 @@ END_LEGAL */
 
 //Student Defined Libraries
 
-#include "cache_lru_set.h"
-#include "cache_Dmap.h"
-#include "lru_2mb.h"
-#include "cache_lru_fully.h"
-#include "cache_random_fully.h"
-#include "fully_tag_conversion.h"
+#include "cache/cache_set.h"
+#include "cache/cache_Dmap.h"
+#include "cache/lru_2mb.h"
+#include "cache/cache_lru_fully.h"
+#include "cache/cache_random_fully.h"
+#include "cache/fully_tag_conversion.h"
 
 #define CACHE_SIZE 15584512 
 
@@ -69,9 +69,9 @@ END_LEGAL */
 
 //cache Objects
 //set-assoc
-//nWays cache_rand(CACHE_SIZE,4,RAN_POLICY);
-//nWays cache_lru(CACHE_SIZE,4,LRU_POLICY);
-//nWays cache_tourn(CACHE_SIZE,4,TOURN_POLICY);
+nWays cache_rand(CACHE_SIZE,4,RAN_POLICY);
+nWays cache_lru(CACHE_SIZE,4,LRU_POLICY);
+nWays cache_tourn(CACHE_SIZE,4,TOURN_POLICY);
 //Direct mapped
 dmap cache_D(CACHE_SIZE);
 
@@ -93,9 +93,9 @@ inline void ramCacheWrapper(VOID * addr)
    p = (unsigned long long)q;
    tag = p/64;
    cache_D.refer(tag);
-   //cache_rand.refer_random(tag);
-   //cache_lru.refer_LRU(tag);
-   //cache_tourn.tournament(tag);
+   cache_rand.refer_random(tag);
+   cache_lru.refer_LRU(tag);
+   cache_tourn.tournament(tag);
    tag_converted = tag_conversion(addr);
    cache_random_fully.refer(tag_converted);
    cache_lru_fully.refer(tag_converted);
@@ -155,9 +155,9 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
       std::cout<<"Required cache misses observed after"<<seconds<<" s\n"; //<<miss ;
       std::cout<<"Terminating Program";
       //cache_D.write_to(trace);
-      //cache_rand.write_to(trace);
-      //cache_lru.write_to(trace);
-      //cache_tourn.write_to(trace);
+      cache_rand.write_to(trace);
+      cache_lru.write_to(trace);
+      cache_tourn.write_to(trace);
       //cache_random_fully.display(trace);
       //cache_lru_fully.display(trace);
       //fclose(trace);
