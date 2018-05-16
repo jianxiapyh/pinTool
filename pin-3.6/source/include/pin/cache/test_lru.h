@@ -39,7 +39,7 @@ inline addr_t MissCheck(const VOID * addr)
 	if(lru_cache[cache_set][i].addr_line == fetch_addr) {
 		int most_recent_prev_index = lru_cache[cache_set][i].recency_val;
 		lru_cache[cache_set][i].recency_val = 0;	
-		
+	        // TODO: fix this	
 		for (int i = 0; i <= usage_index; i++) {
 			if (lru_cache[cache_set][i].recency_val < most_recent_prev_index) {
 				lru_cache[cache_set][i].recency_val++;
