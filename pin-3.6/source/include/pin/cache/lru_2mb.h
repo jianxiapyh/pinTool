@@ -93,6 +93,7 @@ inline int refer(unsigned long long set_index, unsigned long long tag)
           }
 
         }
+	//TODO: return evicted address
         //Add tag to cache
         Hash[set_index][index] = tag;
 
