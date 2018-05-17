@@ -23,7 +23,7 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr);
 inline void InitMask();
 
 struct Memblock lru_cache[SET_NUM][SET_SIZE] = { 0 };
-int set_usage[SET_NUM] = { 0 };
+int set_usage[SET_NUM];
 addr_t set_mask;
 
 inline void InitMask() {
@@ -42,21 +42,23 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
   
    int usage_index;
    usage_index = set_usage[cache_set];
-   
+
+   bool isHit = false;
    for (int i = 0; i <= usage_index; i++) {
 	lru_cache[cache_set][i].recency_val++;
 	if(lru_cache[cache_set][i].addr_line == block_addr) {
-		lru_cache[cache_set][i].recency_val = 0;	
-
-	return CACHE_HIT; 
-	}
-	
+		lru_cache[cache_set][i].recency_val = 0;
+		isHit = true;
+      	}
    }
 
+   if(isHit)
+     return CACHE_HIT;
+
    if (usage_index < SET_SIZE - 1) {
-	for (int i = 0; i < usage_index; i++) {
-		lru_cache[cache_set][i].recency_val++;
-	}
+     //	for (int i = 0; i < usage_index; i++) {
+     //		lru_cache[cache_set][i].recency_val++;
+     //	}
 	usage_index++;
 	set_usage[cache_set] = usage_index;
 	lru_cache[cache_set][usage_index].addr_line = block_addr;
@@ -70,9 +72,9 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
 			evict_addr = lru_cache[cache_set][i].addr_line;  
 			lru_cache[cache_set][i].addr_line = block_addr;
 			lru_cache[cache_set][i].recency_val = 0;
-		} else {
-			lru_cache[cache_set][i].recency_val++;
-		}
+		} //else {
+		//	lru_cache[cache_set][i].recency_val++;
+		//}
 	}
 	
    }	
