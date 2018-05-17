@@ -1,0 +1,13 @@
+#include <iostream>
+
+int main()
+{
+long x;
+for(long i = 0; i < 20000000; i++)
+{
+x = (i / 64) % 8192;
+if(x == 156)
+	std::cout << i << std::endl;
+
+}
+}
