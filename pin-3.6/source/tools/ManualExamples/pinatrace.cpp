@@ -41,9 +41,12 @@ FILE * trace;
 
 static long long unsigned total_misses = 0;
 
+static long long unsigned instcount = 0;
+
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {
+  instcount++;
   
   addr_t fetch_addr;
   fetch_addr = (unsigned long long)addr;
@@ -56,6 +59,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr)
   // TODO: finish (store in array buffer, write to file)
   if(cache_miss == 0) {
     total_misses++;
+    fprintf(trace, "R %p\n", addr);
   } else if (cache_miss == 1) {
 
   } else {
@@ -67,7 +71,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr)
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-  
+  instcount++;
   addr_t fetch_addr;
   fetch_addr = (unsigned long long)addr;
   fetch_addr = fetch_addr / BLOCK_SIZE;
@@ -78,6 +82,7 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
 
   if(cache_miss == 0) {
     total_misses++;
+    fprintf(trace, "W %p\n", addr);
   } else if (cache_miss == 1) {
 
   } else {
@@ -123,6 +128,7 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
+  printf("Instcount = %llu", instcount);
     fprintf(trace, "#eof\n");
     fclose(trace);
 }
