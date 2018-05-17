@@ -35,54 +35,35 @@ END_LEGAL */
 #include <stdio.h>
 #include "pin.H"
 
-#include "cache/test_lru.h"
+#include "cache/lru_2mb.h"
 
 FILE * trace;
 
-static long long unsigned total_misses = 0;
-
+static long long unsigned numMiss = 0;
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {
+  int miss;
+
+  // wrapper = function defined in 'lru_2mb.h' (cachemodel)
+  miss = wrapper(addr);
+
+  if(miss)
+    numMiss++;
   
-  addr_t fetch_addr;
-  fetch_addr = (unsigned long long)addr;
-  fetch_addr = fetch_addr / BLOCK_SIZE;
-
-  int cache_miss;
-
-  cache_miss = MissCheck(READ_OP, fetch_addr);
-
-  // TODO: finish (store in array buffer, write to file)
-  if(cache_miss == 0) {
-    total_misses++;
-  } else if (cache_miss == 1) {
-
-  } else {
-
-  }
     
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-  
-  addr_t fetch_addr;
-  fetch_addr = (unsigned long long)addr;
-  fetch_addr = fetch_addr / BLOCK_SIZE;
+  int miss;
 
-  int cache_miss;
+  // wrapper = function defined in 'lru_2mb.h' (cachemodel)
+  miss = wrapper(addr);
 
-  cache_miss = MissCheck(READ_OP, fetch_addr);
-
-  if(cache_miss == 0) {
-    total_misses++;
-  } else if (cache_miss == 1) {
-
-  } else {
-
-  }
+  if(miss)
+    numMiss++;
     
 }
 
@@ -145,8 +126,7 @@ INT32 Usage()
 int main(int argc, char *argv[])
 {
     if (PIN_Init(argc, argv)) return Usage();
-    
-    InitMask();
+
       
     trace = fopen("trace.out", "w");
 
