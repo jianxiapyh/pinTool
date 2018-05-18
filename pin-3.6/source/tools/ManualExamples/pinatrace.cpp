@@ -35,61 +35,51 @@ END_LEGAL */
 #include <stdio.h>
 #include "pin.H"
 
-#include "cache/test_lru.h"
+#include "cache/cpu_cache.h"
 
 FILE * trace;
 
-static long long unsigned total_misses = 0;
+//static long long unsigned total_misses = 0;
 
-static long long unsigned instcount = 0;
+//static long long unsigned instcount = 0;
 
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {
-  instcount++;
+  //instcount++;
   
-  addr_t fetch_addr;
-  fetch_addr = (unsigned long long)addr;
-  fetch_addr = fetch_addr / BLOCK_SIZE;
+  addr_t fetch_addr = (unsigned long long)addr / BLOCK_SIZE;
 
-  int cache_miss;
-
-  cache_miss = MissCheck(READ_OP, fetch_addr);
+  addr_t cache_miss = MissCheck(READ_OP, fetch_addr);
 
   // TODO: finish (store in array buffer, write to file)
-  if(cache_miss == 0) {
-    total_misses++;
-    fprintf(trace, "R %p\n", addr);
-  } else if (cache_miss == 1) {
-
-  } else {
-
-  }
+  if(cache_miss != 1) {
+    //total_misses++;
+    fprintf(trace, "R %p %llx\n", addr, cache_miss);
+  } 
     
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-  instcount++;
-  addr_t fetch_addr;
-  fetch_addr = (unsigned long long)addr;
-  fetch_addr = fetch_addr / BLOCK_SIZE;
+  //instcount++;
+  addr_t fetch_addr = (unsigned long long)addr / BLOCK_SIZE;
 
-  int cache_miss;
+  addr_t cache_miss = MissCheck(WRITE_OP, fetch_addr);
 
-  cache_miss = MissCheck(READ_OP, fetch_addr);
+  // cache_miss = 0, miss
+  // cache_miss = 1, hit with no eviction from cache
+  // cache_miss = evict_addr, miss with writeback
 
-  if(cache_miss == 0) {
-    total_misses++;
-    fprintf(trace, "W %p\n", addr);
-  } else if (cache_miss == 1) {
-
-  } else {
-
+  if(cache_miss != 1) {
+    //total_misses++;
+    fprintf(trace, "W %p %llx\n", addr, cache_miss);
   }
-    
+
 }
+    
+
 
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v)
@@ -128,7 +118,7 @@ VOID Instruction(INS ins, VOID *v)
 
 VOID Fini(INT32 code, VOID *v)
 {
-  printf("Instcount = %llu", instcount);
+  //printf("Instcount = %llu", instcount);
     fprintf(trace, "#eof\n");
     fclose(trace);
 }
@@ -150,7 +140,8 @@ INT32 Usage()
 
 int main(int argc, char *argv[])
 {
-    if (PIN_Init(argc, argv)) return Usage();
+    if(PIN_Init(argc, argv))
+      return Usage();
     
     InitMask();
       
