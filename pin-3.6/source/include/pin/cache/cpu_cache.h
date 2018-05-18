@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
-#define SET_BITS 13
-#define SET_NUM 8192
+#define SET_BITS 12
+#define SET_NUM 4096
 #define SET_SIZE 8
 #define BLOCK_SIZE 64
 
