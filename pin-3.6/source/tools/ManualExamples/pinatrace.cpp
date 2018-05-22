@@ -57,7 +57,7 @@ VOID RecordMemRead(VOID * ip, VOID * addr)
   // TODO: finish (store in array buffer, write to file)
   if(cache_miss != 1) {
     //total_misses++;
-    fprintf(trace, "R 0x%016" PRIxPTR " %016llx\n", (uintptr_t)addr, cache_miss);
+    fprintf(trace, "R 0x%016" PRIxPTR " %010llx\n", (uintptr_t)addr, cache_miss);
   } 
     
 }
@@ -76,7 +76,7 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
 
   if(cache_miss != 1) {
     //total_misses++;
-    fprintf(trace, "W 0x%016" PRIxPTR " %016llx\n", (uintptr_t)addr, cache_miss);
+    fprintf(trace, "W 0x%016" PRIxPTR " %010llx\n", (uintptr_t)addr, cache_miss);
   }
 
 }
