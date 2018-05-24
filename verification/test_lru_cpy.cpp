@@ -38,55 +38,100 @@ inline void InitMask() {
 inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
 
 
-   addr_t wb_addr = 0;
-   addr_t cache_set;
-   cache_set = block_addr & set_mask;
+  addr_t wb_addr = MISS_NO_EVICT;
+  addr_t cache_set = block_addr & set_mask;
   
-   int usage_index;
-   usage_index = set_usage[cache_set];
+  int usage_index = set_usage[cache_set];
 
-   bool is_hit = false;
-   for (int i = 0; i <= usage_index; i++) {
-	lru_cache[cache_set][i].recency_val++;
-	if(lru_cache[cache_set][i].addr_line == block_addr) {
-		lru_cache[cache_set][i].recency_val = 0;
-		if (ins_op) {
-			lru_cache[cache_set][i].is_dirty = 1;
+  bool is_hit = false;
+  for(int i = 0; i <= usage_index; i++)
+    {
+      lru_cache[cache_set][i].recency_val++;
+      if(lru_cache[cache_set][i].addr_line == block_addr)
+	{
+	  lru_cache[cache_set][i].recency_val = 0;
+
+	  // if(ins_op) is true for WRITE_OP
+	  if(ins_op)
+	    {
+	      lru_cache[cache_set][i].is_dirty = 1;
+	    }
+	  is_hit = true;
+	}
+    }
+
+  if(is_hit)
+    return CACHE_HIT;
+
+  if (usage_index < SET_SIZE - 1)
+    {
+      // Insertion
+      usage_index++;
+      set_usage[cache_set] = usage_index;
+      lru_cache[cache_set][usage_index].addr_line = block_addr;
+      lru_cache[cache_set][usage_index].recency_val = 0;
+
+      // Bring in cache and mark dirty for WRITPE_OP
+      if(ins_op)
+	{
+	  lru_cache[cache_set][usage_index].is_dirty = 1;
+	}
+  	
+      return MISS_NO_EVICT;
+	
+    }
+  else
+    {
+	int lruIdx = -1;
+	int largestRecencyVal = -1;
+	for(int i = 0; i <= usage_index; i++)
+	  {
+	    //std::cout << lru_cache[cache_set][i].recency_val << " > " << lru << "\n";
+	    if(lru_cache[cache_set][i].recency_val > largestRecencyVal)
+	      {
+		lruIdx = i;
+		largestRecencyVal = lru_cache[cache_set][i].recency_val;
+	      }
+	  }
+	//std::cout << "\nlru = " << lru << "\n";
+	if(lru_cache[cache_set][lruIdx].is_dirty)
+	  {
+	    wb_addr = lru_cache[cache_set][lruIdx].addr_line;
+	  }
+
+	
+	lru_cache[cache_set][lruIdx].addr_line = block_addr;
+	lru_cache[cache_set][lruIdx].recency_val = 0;
+
+	if(ins_op)
+	  {
+	    lru_cache[cache_set][lruIdx].is_dirty = 1;
+	  }
+	else
+	  {
+	    lru_cache[cache_set][lruIdx].is_dirty = 0;
+	  }
+	return wb_addr;
+    }
+
+      /*
+      bool is_evicted = false;
+      for (int i = 0; i <= usage_index; i++)
+	{
+	  if ((!is_evicted) && (lru_cache[cache_set][i].recency_val >= set_usage[cache_set]))
+	    {
+	      if (lru_cache[cache_set][i].is_dirty)
+		{
+		  wb_addr = lru_cache[cache_set][i].addr_line;  
 		}
-		is_hit = true;
-      	}
-   }
-
-   if(is_hit)
-     return CACHE_HIT;
-
-   if (usage_index < SET_SIZE - 1) {
-	usage_index++;
-	set_usage[cache_set] = usage_index;
-	lru_cache[cache_set][usage_index].addr_line = block_addr;
-	lru_cache[cache_set][usage_index].recency_val = 0;
-	if (ins_op) {
-		lru_cache[cache_set][usage_index].is_dirty = 1;
+	      lru_cache[cache_set][i].addr_line = block_addr;
+	      lru_cache[cache_set][i].recency_val = 0;
+	      is_evicted = true;
+	    } 
 	}
+      */
 	
-	return MISS_NO_EVICT;
-	
-   } else {
-	bool is_evicted = false;
-	for (int i = 0; i < set_usage[cache_set]; i++) {
-		if ((!is_evicted) && (lru_cache[cache_set][i].recency_val >= set_usage[cache_set])) {
-			if (lru_cache[cache_set][i].is_dirty) {
-				wb_addr = lru_cache[cache_set][i].addr_line;  
-			}
-			lru_cache[cache_set][i].addr_line = block_addr;
-			lru_cache[cache_set][i].recency_val = 0;
-			is_evicted = true;
-		} 
-	}
-	
-   }	
-   return wb_addr;
-
+  
 }
 
 static long long unsigned total_misses = 0;
@@ -152,28 +197,29 @@ int main()
   
   InitMask();
   
-  write(9971505);
-  write(9971506);
-  write(9971507);
-  write(9984);
-  write(3680000);
-  write(7350016);
-  write(7874304);
-  write(8398592);
-  write(8922880);
-  write(9447168);
-  write(10495744);
+  read(9971505); //155804
+  read(9971506); //155804
+  read(9971507); //155804
+  write(9984); //156
+  write(3680000); //57500
+  write(7350016); //114844
+  write(7874304); //123036
+  write(8398592); //131228
+  write(8922880); //139420
+  write(9447168); //147612
+  
+  read(10495744); //163996
 
-  write(7350016);
-    write(7350016);
-  write(7350016);
+  write(7350016); //114844
+  write(7350016); //114844
+  write(7350016); //114844
 
 
-  write(11020032);
-  write(11544320);
-  write(9971456);
-  write(12068608);
-  write(12592896);
+  write(11020032); //172188
+  write(11544320); //180380
+  write(9971456); //155804
+  write(12068608); //188572
+  write(12592896); //196764
   write(9971456);
   write(9970546);
 

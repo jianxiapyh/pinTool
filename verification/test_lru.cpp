@@ -3,7 +3,7 @@
 
 #define SET_BITS 13
 #define SET_NUM 8192
-#define SET_SIZE 8
+#define SET_SIZE 2
 #define BLOCK_SIZE 64
 
 #define CACHE_HIT 1
@@ -70,7 +70,7 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
 	return MISS_NO_EVICT;
 	
    } else {
-	for (int i = 0; i < set_usage[cache_set]; i++) {
+	for (int i = 0; i <= set_usage[cache_set]; i++) {
 		if ((!evict_addr) && (lru_cache[cache_set][i].recency_val >= set_usage[cache_set])) {
 			evict_addr = lru_cache[cache_set][i].addr_line;  
 			lru_cache[cache_set][i].addr_line = block_addr;
