@@ -21,6 +21,7 @@ struct Memblock {
 
 inline addr_t MissCheck(const int ins_op, const addr_t block_addr);
 inline void InitMask();
+inline void InitSet_Usage();
 
 struct Memblock lru_cache[SET_NUM][SET_SIZE] = { 0 };
 int set_usage[SET_NUM];
@@ -32,6 +33,11 @@ inline void InitMask() {
    for (int i = 0; i < SET_BITS; i++) {
 	set_mask = set_mask | (0x1 << i );
    }
+}
+
+inline void InitSet_Usage() {
+  for(int i = 0; i < SET_NUM; ++i)
+    set_usage[i] = -1;
 }
 
 inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {

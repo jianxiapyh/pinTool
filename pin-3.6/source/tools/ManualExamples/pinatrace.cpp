@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
     return Usage();
     
   InitMask();
+  InitSet_Usage();
       
   trace = fopen("trace.out", "w");
 
