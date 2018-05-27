@@ -45,19 +45,20 @@ FILE * trace;
 
 //static long long unsigned instcount = 0;
 
-// Print a memory read record
+// cache_miss = 1 for hit, 0 for miss with no evictions (cold misses)
+// cache_miss = 2 for non-dirty evictions, cache_miss = 3 for dirty evictions
+
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {
   //instcount++;
   
   addr_t fetch_addr = (unsigned long long)addr / BLOCK_SIZE;
+  addr_t evict_addr;
+  int cache_miss = CacheCall(READ_OP, fetch_addr, &evict_addr);
 
-  addr_t cache_miss = MissCheck(READ_OP, fetch_addr);
-
-  // TODO: finish (store in array buffer, write to file)
   if(cache_miss != 1) {
     //total_misses++;
-    fprintf(trace, "R 0x%016" PRIxPTR " %010llx\n", (uintptr_t)addr, cache_miss);
+    fprintf(trace, "R 0x%016" PRIxPTR " %015llx %d\n", (uintptr_t)addr, evict_addr, cache_miss);
   } 
     
 }
@@ -67,16 +68,12 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
   //instcount++;
   addr_t fetch_addr = (unsigned long long)addr / BLOCK_SIZE;
-
-  addr_t cache_miss = MissCheck(WRITE_OP, fetch_addr);
-
-  // cache_miss = 0, miss
-  // cache_miss = 1, hit with no eviction from cache
-  // cache_miss = evict_addr, miss with writeback
+  addr_t evict_addr;
+  int cache_miss = CacheCall(WRITE_OP, fetch_addr, &evict_addr);
 
   if(cache_miss != 1) {
     //total_misses++;
-    fprintf(trace, "W 0x%016" PRIxPTR " %010llx\n", (uintptr_t)addr, cache_miss);
+    fprintf(trace, "W 0x%016" PRIxPTR " %015llx %d\n", (uintptr_t)addr, evict_addr, cache_miss);
   }
 
 }
@@ -145,7 +142,8 @@ int main(int argc, char *argv[])
   
   if(PIN_Init(argc, argv))
     return Usage();
-    
+
+  // Initialization for cache
   InitMask();
   InitSet_Usage();
       

@@ -7,6 +7,8 @@
 
 #define CACHE_HIT 1
 #define MISS_NO_EVICT 0
+#define MISS_NON_DIRTY_EVICT 2
+#define MISS_DIRTY_EVICT 3
 
 #define READ_OP 0
 #define WRITE_OP 1
@@ -40,11 +42,15 @@ inline void InitSet_Usage() {
     set_usage[i] = -1;
 }
 
-inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
+inline addr_t CacheCall(const int ins_op, const addr_t block_addr, addr_t* evict_addr) {
 
+  //#define CACHE_HIT 1
+  //#define MISS_NO_EVICT 0
+  //#define MISS_NON_DIRTY_EVICT 2
+  //#define MISS_DIRTY_EVICT 3 
+  int evict_type = MISS_NO_EVICT;
   
-
-  addr_t wb_addr = MISS_NO_EVICT;
+  *evict_addr = MISS_NO_EVICT;
   addr_t cache_set = block_addr & set_mask;
   
   int usage_index = set_usage[cache_set];
@@ -69,6 +75,8 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
   if(is_hit)
     return CACHE_HIT;
 
+  //OR evict_type = CACHE_HIT
+
   if (usage_index < SET_SIZE - 1)
     {
       // Insertion
@@ -77,12 +85,12 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
       lru_cache[cache_set][usage_index].addr_line = block_addr;
       lru_cache[cache_set][usage_index].recency_val = 0;
 
-      // Bring in cache and mark dirty for WRITPE_OP
+      // Bring in cache and mark dirty for WRITE_OP
       if(ins_op)
 	{
 	  lru_cache[cache_set][usage_index].is_dirty = 1;
 	}
-  	
+
       return MISS_NO_EVICT;
 	
     }
@@ -99,10 +107,20 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
 		largestRecencyVal = lru_cache[cache_set][i].recency_val;
 	      }
 	  }
-	//std::cout << "\nlru = " << lru << "\n";
+
+
+	// an address is _always_ returned on eviction
+	*evict_addr = lru_cache[cache_set][lruIdx].addr_line;
+
 	if(lru_cache[cache_set][lruIdx].is_dirty)
 	  {
-	    wb_addr = lru_cache[cache_set][lruIdx].addr_line;
+	    // dirty block is evicted
+	    evict_type = MISS_DIRTY_EVICT;
+	  }
+	else
+	  {
+	    // non-dirty block evicted
+	    evict_type = MISS_NON_DIRTY_EVICT;
 	  }
 
 	
@@ -111,31 +129,18 @@ inline addr_t MissCheck(const int ins_op, const addr_t block_addr) {
 
 	if(ins_op)
 	  {
+	    // marking inserted block as dirty if instruction = WRITE
 	    lru_cache[cache_set][lruIdx].is_dirty = 1;
 	  }
 	else
 	  {
+	    // marking inserted  block as non-dirty if insturction = READ
 	    lru_cache[cache_set][lruIdx].is_dirty = 0;
 	  }
-	return wb_addr;
+	
+	return evict_type;
     }
 
-      /*
-      bool is_evicted = false;
-      for (int i = 0; i <= usage_index; i++)
-	{
-	  if ((!is_evicted) && (lru_cache[cache_set][i].recency_val >= set_usage[cache_set]))
-	    {
-	      if (lru_cache[cache_set][i].is_dirty)
-		{
-		  wb_addr = lru_cache[cache_set][i].addr_line;  
-		}
-	      lru_cache[cache_set][i].addr_line = block_addr;
-	      lru_cache[cache_set][i].recency_val = 0;
-	      is_evicted = true;
-	    } 
-	}
-      */
 	
  
 }
