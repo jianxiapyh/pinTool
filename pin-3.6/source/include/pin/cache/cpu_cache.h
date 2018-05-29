@@ -17,7 +17,7 @@ typedef unsigned long long addr_t;
 
 struct Memblock {
     addr_t addr_line;
-    int recency_val;
+    long long recency_val;
     int is_dirty;
 };
 
@@ -97,7 +97,7 @@ inline addr_t CacheCall(const int ins_op, const addr_t block_addr, addr_t* evict
   else
     {
 	int lruIdx = -1;
-	int largestRecencyVal = -1;
+	long long largestRecencyVal = -1;
 	for(int i = 0; i <= usage_index; i++)
 	  {
 	    //std::cout << lru_cache[cache_set][i].recency_val << " > " << lru << "\n";
